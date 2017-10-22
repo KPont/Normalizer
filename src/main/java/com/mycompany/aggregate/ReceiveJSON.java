@@ -20,9 +20,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-
-public class ReceiveJSON implements Runnable{
+public class ReceiveJSON implements Runnable {
 
     private final String EXCHANGE_NAME = "cphbusiness.bankJSON";
 
@@ -33,19 +31,20 @@ public class ReceiveJSON implements Runnable{
             factory.setHost("datdb.cphbusiness.dk");
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
-            
+
             channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-            String queueName = channel.queueDeclare().getQueue();
+//            String queueName = channel.queueDeclare().getQueue();
+            String queueName = "kkc-receiver";
             channel.queueBind(queueName, EXCHANGE_NAME, "");
             System.out.println(" [*] Waiting for messages.");
-            
+
             QueueingConsumer consumer = new QueueingConsumer(channel);
             channel.basicConsume(queueName, true, consumer);
             CollectJSON cj = new CollectJSON();
             while (true) {
                 QueueingConsumer.Delivery delivery = consumer.nextDelivery();
                 String message = new String(delivery.getBody());
-                
+
                 System.out.println(" [x] Received '" + message + "'");
                 try {
                     cj.send(message);
@@ -59,8 +58,6 @@ public class ReceiveJSON implements Runnable{
         } catch (ShutdownSignalException ex) {
             Logger.getLogger(ReceiveJSON.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ConsumerCancelledException ex) {
-            Logger.getLogger(ReceiveJSON.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TimeoutException ex) {
             Logger.getLogger(ReceiveJSON.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

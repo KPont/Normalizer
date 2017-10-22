@@ -33,24 +33,25 @@ public class ReceiveXML implements Runnable {
             factory.setHost("datdb.cphbusiness.dk");
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
-            
+
             channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-            String queueName = channel.queueDeclare().getQueue();
+//            String queueName = channel.queueDeclare().getQueue();
+            String queueName = "kkc-receiver";
             channel.queueBind(queueName, EXCHANGE_NAME, "");
             System.out.println(" [*] Waiting for messages.");
-            
+
             QueueingConsumer consumer = new QueueingConsumer(channel);
             channel.basicConsume(queueName, true, consumer);
             CollectJSON cj = new CollectJSON();
             while (true) {
                 QueueingConsumer.Delivery delivery = consumer.nextDelivery();
                 String message = new String(delivery.getBody());
-                
+
                 System.out.println(" [x] Received '" + message + "'");
                 try {
                     JSONObject xmlJSONObj = XML.toJSONObject(message);
                     cj.send(xmlJSONObj.toString());
-                    
+
                 } catch (Exception e) {
                     System.out.println("Error: " + e);
                 }
@@ -62,8 +63,6 @@ public class ReceiveXML implements Runnable {
         } catch (ShutdownSignalException ex) {
             Logger.getLogger(ReceiveXML.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ConsumerCancelledException ex) {
-            Logger.getLogger(ReceiveXML.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TimeoutException ex) {
             Logger.getLogger(ReceiveXML.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
